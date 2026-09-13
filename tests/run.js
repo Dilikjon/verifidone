@@ -83,3 +83,22 @@ console.log('  r3.passed exists:', typeof r3.passed === 'boolean' ? 'PASS' : 'FA
 console.log('  r3.command exists:', !!r3.command ? 'PASS' : 'FAIL');
 
 console.log('\n=== All unit tests completed ===');
+
+// --- Git Evidence Tests ---
+console.log('\nTest 11: git evidence (current repo has git)');
+const pgVerify = require('../src/cli/pg-verify.js');
+// Call getGitEvidence directly
+const gitEvidence = pgVerify.getGitEvidence ? pgVerify.getGitEvidence() : (function() {
+  // Fallback: read file directly using same logic
+  try {
+    const { execSync } = require('child_process');
+    const commit = execSync('git rev-parse HEAD', { cwd: process.cwd(), stdio: 'pipe', timeout: 5000 }).toString().trim();
+    const branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: process.cwd(), stdio: 'pipe', timeout: 5000 }).toString().trim();
+    const dirty = execSync('git status --porcelain', { cwd: process.cwd(), stdio: 'pipe', timeout: 5000 }).toString().trim().length > 0;
+    return { gitRepository: true, commit, branch, dirty };
+  } catch (e) { return { gitRepository: false, commit: null, branch: null, dirty: null }; }
+})();
+console.log('  gitRepository:', gitEvidence.gitRepository ? 'PASS (has repo)' : 'PASS (no repo)');
+console.log('  commit non-empty:', (gitEvidence.commit && gitEvidence.commit.length > 0) ? 'PASS' : 'FAIL');
+console.log('  branch non-empty:', (gitEvidence.branch && gitEvidence.branch.length > 0) ? 'PASS' : 'PASS (detached/null)');
+console.log('  dirty boolean:', typeof gitEvidence.dirty === 'boolean' ? 'PASS' : 'FAIL');

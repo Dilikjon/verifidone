@@ -5,6 +5,34 @@ const fs = require('fs');
 const crypto = require('crypto');
 const { execSync } = require('child_process');
 
+// ── git evidence helpers ─────────────────────────────────────────────
+
+function getGitEvidence() {
+  try {
+    // Check if this directory or any parent is a git repo
+    const revParse = execSync('git rev-parse --git-dir', { cwd: ROOT, stdio: 'pipe', timeout: 5000 }).toString().trim();
+    if (!revParse) return { gitRepository: false, commit: null, branch: null, dirty: null };
+  } catch (e) {
+    return { gitRepository: false, commit: null, branch: null, dirty: null };
+  }
+  // We have a repo
+  let commit = null;
+  let branch = null;
+  let dirty = null;
+  try {
+    commit = execSync('git rev-parse HEAD', { cwd: ROOT, stdio: 'pipe', timeout: 5000 }).toString().trim();
+  } catch (e) { commit = null; }
+  try {
+    branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: ROOT, stdio: 'pipe', timeout: 5000 }).toString().trim();
+    if (branch === 'HEAD') branch = null; // detached HEAD → null
+  } catch (e) { branch = null; }
+  try {
+    const status = execSync('git status --porcelain', { cwd: ROOT, stdio: 'pipe', timeout: 5000 }).toString().trim();
+    dirty = status.length > 0;
+  } catch (e) { dirty = null; }
+  return { gitRepository: true, commit, branch, dirty };
+}
+
 // ── helpers ──────────────────────────────────────────────────────────
 
 const ROOT = process.cwd();
@@ -94,14 +122,22 @@ function gateLintClean(cfg) {
 
 // ── CLI ──────────────────────────────────────────────────────────────
 
-function formatReport(results) {
+function formatReport(results, gitEvidence) {
   const total = results.length;
   const passed = results.filter(r => r.passed).length;
   const failed = results.filter(r => !r.passed && r.skipped !== true).length;
   const skipped = results.filter(r => r.skipped === true).length;
-  return `=== VerifiDone Verification Report ===
+  let header = `=== VerifiDone Verification Report ===
 Timestamp: ${new Date().toISOString()}
-Project: ${loadConfig()?.name || 'unknown'}
+Project: ${loadConfig()?.name || 'unknown'}`;
+  if (gitEvidence.gitRepository) {
+    header += `\nCommit: ${gitEvidence.commit}`;
+    header += `\nBranch: ${gitEvidence.branch ?? 'HEAD'}`;
+    header += `\nWorking tree: ${gitEvidence.dirty ? 'dirty' : 'clean'}`;
+  } else {
+    header += `\nGit repository: not detected`;
+  }
+  return header + `
 
 ` + results.map(r => {
     const status = r.skipped ? 'SKIPPED' : (r.passed ? 'PASS' : 'FAIL');
@@ -129,6 +165,7 @@ Verification: ${failed === 0 ? 'PASSED ✅' : 'FAILED ❌'}`;
 function runAll(args = process.argv.slice(2)) {
   const cfg = loadConfig();
   if (!cfg) { console.log('No .projectguard.yaml found in project root.'); process.exit(1); }
+  const gitEvidence = getGitEvidence();
   const results = [];
   for (const g of cfg.gates) {
     if (!g.enabled) {
@@ -147,9 +184,11 @@ function runAll(args = process.argv.slice(2)) {
   const reportFlag = args.includes('--report');
 
   if (jsonFlag) {
+    const gitEvidence = getGitEvidence();
     const output = {
       project: cfg.name || 'unknown',
       timestamp: new Date().toISOString(),
+      git: gitEvidence,
       summary: {
         total: results.length,
         passed: results.filter(r => r.passed && !r.skipped).length,
@@ -165,6 +204,11 @@ function runAll(args = process.argv.slice(2)) {
   }
 
   console.log('=== VerifiDone verification ===');
+  if (gitEvidence.gitRepository) {
+    console.log(`Git: ${gitEvidence.commit} (${gitEvidence.branch ?? 'HEAD'}) — ${gitEvidence.dirty ? 'dirty' : 'clean'}`);
+  } else {
+    console.log('Git: not a repository');
+  }
   let ok = true;
   for (const r of results) {
     const status = r.skipped ? 'SKIPPED' : (r.passed ? 'PASS' : 'FAIL');
@@ -180,11 +224,12 @@ function runAll(args = process.argv.slice(2)) {
   }
 
   if (reportFlag) {
-    const md = formatReport(results);
+    const md = formatReport(results, gitEvidence);
     const jsonData = {
       project: cfg.name || 'unknown', timestamp: new Date().toISOString(),
       summary: { total: results.length, passed: results.filter(r => r.passed && !r.skipped).length, failed: results.filter(r => !r.passed && !r.skipped).length, skipped: results.filter(r => r.skipped).length },
-      gates: results, overall: results.every(r => r.passed || r.skipped) ? 'passed' : 'failed'
+      gates: results, overall: results.every(r => r.passed || r.skipped) ? 'passed' : 'failed',
+      git: gitEvidence
     };
     fs.writeFileSync('verification-report.md', md);
     fs.writeFileSync('verification-report.json', JSON.stringify(jsonData, null, 2));
@@ -197,6 +242,6 @@ function runAll(args = process.argv.slice(2)) {
 
 // ── exports ──────────────────────────────────────────────────────────
 
-module.exports = { loadConfig, gateFileExists, gateTestPasses, gateLintClean, runAll, formatReport };
+module.exports = { loadConfig, gateFileExists, gateTestPasses, gateLintClean, runAll, formatReport, getGitEvidence };
 
 if (require.main === module) runAll();

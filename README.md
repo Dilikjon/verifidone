@@ -1,14 +1,16 @@
-# ProjectGuard
+# VerifiDone
+
+> **Don't trust done. Verify it.**
 
 Universal verification layer for AI coding agents — helps confirm a task is truly complete before declaring it done.
 
-## What is ProjectGuard?
+## What is VerifiDone?
 
-ProjectGuard is an open-source skill and CLI tool that runs verification gates (file checks, tests, lint) on your project before you say "done". It provides a standard, agent-agnostic way to verify task completion.
+VerifiDone is an open-source skill and CLI tool that runs verification gates (file checks, tests, lint) on your project before you say "done". It provides a standard, agent-agnostic way to verify task completion.
 
-## Why ProjectGuard?
+## Why VerifiDone?
 
-AI coding agents are increasingly capable, but they often skip verification steps. ProjectGuard gives them a uniform, configurable checklist to confirm all required work is finished before reporting success.
+AI coding agents are increasingly capable, but they often skip verification steps. VerifiDone gives them a uniform, configurable checklist to confirm all required work is finished before reporting success.
 
 ## Features
 
@@ -65,7 +67,7 @@ Or use the example config as a starting point: `.projectguard.yaml.example`
 ## Project Structure
 
 ```
-projectguard/
+verifidone/
 ├── SKILL.md                  # Agent skill definition
 ├── README.md                 # This file
 ├── LICENSE                   # MIT License

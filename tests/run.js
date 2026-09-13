@@ -10,7 +10,7 @@ const lintClean = require('../src/gates/lint.clean.js');
 
 const fixtureDir = path.join(__dirname, 'fixtures', 'demo-project');
 
-console.log('=== ProjectGuard MVP Unit Tests ===\n');
+console.log('=== VerifiDone MVP Unit Tests ===\n');
 
 // Test 1: file.exists gate
 console.log('Test 1: file.exists gate');

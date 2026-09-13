@@ -1,5 +1,5 @@
 {
-  "name": "projectguard",
+  "name": "verifidone",
   "version": "0.1.0",
   "description": "Verification layer for AI agent task completion",
   "main": "src/cli/pg-verify.js",

@@ -64,7 +64,7 @@ function runAll() {
       default: results.push({ name: g.name, passed: false, error: 'unknown gate' });
     }
   }
-  console.log('=== ProjectGuard verification ===');
+  console.log('=== VerifiDone verification ===');
   let ok = true;
   for (const r of results) {
     const status = r.passed ? 'PASS' : 'FAIL';

@@ -1,12 +1,12 @@
 ---
-name: ProjectGuard
+name: VerifiDone
 description: Verification layer that helps AI agents confirm a task is truly complete before declaring it done. Provides runnable gates, evidence fingerprints, and project-level health checks.
 version: 0.1.0
 license: MIT
 tags: [verification, gates, agent, done-check, project-health]
 ---
 
-# ProjectGuard
+# VerifiDone
 
 Universal verification skill for AI coding agents. Before saying "done", run `pg-verify` to confirm gates pass.
 

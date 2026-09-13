@@ -17,5 +17,18 @@ jobs:
           node-version: '24'
       - name: Run tests
         run: npm test
-      - name: Run verification
-        run: npm run verify
+      - name: Run verification (diagnostic — capture error before exit)
+        run: |
+          echo "=== DIAGNOSTICS ==="
+          pwd
+          node -v
+          npm -v
+          ls -la
+          test -f .projectguard.yaml && echo ".projectguard.yaml: OK" || echo ".projectguard.yaml: MISSING"
+          echo "--- git ---"
+          git status || true
+          git branch || true
+          git rev-parse HEAD || true
+          echo "--- verify ---"
+          npm run verify
+        shell: bash

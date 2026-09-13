@@ -9,4 +9,4 @@ gates:
       - README.md
   - name: test.passes
     enabled: true
-    command: "node -e \"console.log('ok')\""
+    command: "node -e 'console.log(\"ok\")'"

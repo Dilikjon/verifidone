@@ -28,5 +28,4 @@ Thumbs.db
 *.sublime-*
 
 # Package
-package-lock.json
 yarn.lock

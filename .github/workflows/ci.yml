@@ -18,4 +18,11 @@ jobs:
       - name: Run tests
         run: npm test
       - name: Run verification
-        run: npm run verify
+        run: npm run verify > verify-output.txt 2>&1; echo "VERIFY_EXIT_CODE=$?" verify-output.txt; cat verify-output.txt; exit $VERIFY_EXIT_CODE
+      - name: Upload verification output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-output
+          path: verify-output.txt
+          if-no-files-found: error
